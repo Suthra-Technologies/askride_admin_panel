@@ -4,11 +4,13 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, Navigation, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { authApi } from '../../services/api';
+import { useDialog } from '../../context/DialogContext';
 
 const Login: React.FC = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const { login } = useAuth();
+    const { showAlert } = useDialog();
     const navigate = useNavigate();
     const { register, handleSubmit, formState: { errors } } = useForm();
 
@@ -18,7 +20,7 @@ const Login: React.FC = () => {
             await authApi.adminLogin({ email: data.email, password: data.password });
             navigate('/verify-otp', { state: { email: data.email } });
         } catch (err: any) {
-            alert(err.response?.data?.message || 'Login failed. Please check your credentials.');
+            showAlert("Login Failed", err.response?.data?.message || 'Please check your credentials and try again.', 'alert');
         } finally {
             setIsLoading(false);
         }

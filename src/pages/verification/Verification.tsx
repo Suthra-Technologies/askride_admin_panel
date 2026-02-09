@@ -10,11 +10,13 @@ import {
     User
 } from 'lucide-react';
 import { adminApi } from '../../services/api';
+import { useDialog } from '../../context/DialogContext';
 
 const Verification: React.FC = () => {
     const [verifications, setVerifications] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [filter, setFilter] = useState<'all' | 'pending' | 'verified'>('all');
+    const { confirm, showAlert } = useDialog();
 
     const fetchVerifications = async () => {
         setIsLoading(true);
@@ -50,23 +52,39 @@ const Verification: React.FC = () => {
     };
 
     const handleVerifyId = async (id: string, approved: boolean) => {
-        if (!window.confirm(`Are you sure you want to ${approved ? 'approve' : 'reject'} this ID proof?`)) return;
-        try {
-            await adminApi.verifyIdProof(id, approved);
-            fetchVerifications();
-        } catch (error) {
-            alert("Action failed");
-        }
+        confirm({
+            title: approved ? 'Approve ID' : 'Reject ID',
+            message: `Are you sure you want to ${approved ? 'approve' : 'reject'} this identification document?`,
+            type: approved ? 'success' : 'danger',
+            confirmText: approved ? 'Approve' : 'Reject',
+            onConfirm: async () => {
+                try {
+                    await adminApi.verifyIdProof(id, approved);
+                    fetchVerifications();
+                    showAlert("ID Updated", `The identification document has been ${approved ? 'approved' : 'rejected'}.`, 'success');
+                } catch (error) {
+                    showAlert("Action failed", "We couldn't update the verification status.", 'alert');
+                }
+            }
+        });
     };
 
     const handleVerifyLicense = async (id: string, approved: boolean) => {
-        if (!window.confirm(`Are you sure you want to ${approved ? 'approve' : 'reject'} this license?`)) return;
-        try {
-            await adminApi.verifyLicense(id, approved);
-            fetchVerifications();
-        } catch (error) {
-            alert("Action failed");
-        }
+        confirm({
+            title: approved ? 'Verify License' : 'Reject License',
+            message: `Are you sure you want to ${approved ? 'verify' : 'reject'} this driver license?`,
+            type: approved ? 'success' : 'danger',
+            confirmText: approved ? 'Verify' : 'Reject',
+            onConfirm: async () => {
+                try {
+                    await adminApi.verifyLicense(id, approved);
+                    fetchVerifications();
+                    showAlert("License Updated", `The driver license has been ${approved ? 'verified' : 'rejected'}.`, 'success');
+                } catch (error) {
+                    showAlert("Action failed", "We couldn't update the license status.", 'alert');
+                }
+            }
+        });
     };
 
     if (isLoading) {
@@ -79,7 +97,7 @@ const Verification: React.FC = () => {
 
     const handleViewDocument = (url?: string) => {
         if (!url) {
-            alert("Document image not available");
+            showAlert("Not Available", "This document image is not available for viewing.", 'alert');
             return;
         }
         window.open(url, '_blank');
@@ -272,41 +290,53 @@ const Verification: React.FC = () => {
                                             </div>
                                         </div>
                                         <div className="flex justify-between items-center text-xs font-bold dark:text-white">
-                                            <span>Insurance:</span>
+                                            {/* <span>Insurance:</span>
                                             <div className="flex gap-1">
                                                 <button onClick={() => handleViewDocument(vehicle.insuranceDocument?.front)} className="text-primary-600 hover:underline">Front</button>
                                                 <span>•</span>
                                                 <button onClick={() => handleViewDocument(vehicle.insuranceDocument?.back)} className="text-primary-600 hover:underline">Back</button>
-                                            </div>
+                                            </div> */}
                                         </div>
 
                                         {!vehicle.isVerified ? (
                                             <div className="flex gap-2 pt-2">
                                                 <button
-                                                    onClick={async () => {
-                                                        if (window.confirm("Reject this vehicle?")) {
-                                                            try {
-                                                                await adminApi.verifyVehicle(vehicle._id, false);
-                                                                fetchVerifications();
-                                                            } catch (error) {
-                                                                alert("Failed to reject vehicle");
+                                                    onClick={() => {
+                                                        confirm({
+                                                            title: 'Reject Vehicle',
+                                                            message: 'Are you sure you want to reject this vehicle?',
+                                                            type: 'danger',
+                                                            onConfirm: async () => {
+                                                                try {
+                                                                    await adminApi.verifyVehicle(vehicle._id, false);
+                                                                    fetchVerifications();
+                                                                    showAlert("Rejected", "Vehicle status has been updated to rejected.", 'success');
+                                                                } catch (error) {
+                                                                    showAlert("Error", "Failed to reject vehicle", 'alert');
+                                                                }
                                                             }
-                                                        }
+                                                        });
                                                     }}
                                                     className="flex-1 py-2 bg-rose-50 text-rose-600 hover:bg-rose-100 text-xs font-bold rounded-lg transition-all"
                                                 >
                                                     Reject
                                                 </button>
                                                 <button
-                                                    onClick={async () => {
-                                                        if (window.confirm("Verify this vehicle?")) {
-                                                            try {
-                                                                await adminApi.verifyVehicle(vehicle._id, true);
-                                                                fetchVerifications();
-                                                            } catch (error) {
-                                                                alert("Failed to verify vehicle");
+                                                    onClick={() => {
+                                                        confirm({
+                                                            title: 'Verify Vehicle',
+                                                            message: 'Verify this vehicle as authentic?',
+                                                            type: 'success',
+                                                            onConfirm: async () => {
+                                                                try {
+                                                                    await adminApi.verifyVehicle(vehicle._id, true);
+                                                                    fetchVerifications();
+                                                                    showAlert("Verified", "Vehicle has been verified successfully.", 'success');
+                                                                } catch (error) {
+                                                                    showAlert("Error", "Failed to verify vehicle", 'alert');
+                                                                }
                                                             }
-                                                        }
+                                                        });
                                                     }}
                                                     className="flex-2 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-sm transition-all px-4"
                                                 >
@@ -315,15 +345,20 @@ const Verification: React.FC = () => {
                                             </div>
                                         ) : (
                                             <button
-                                                onClick={async () => {
-                                                    if (window.confirm("Move this vehicle back to pending?")) {
-                                                        try {
-                                                            await adminApi.verifyVehicle(vehicle._id, false);
-                                                            fetchVerifications();
-                                                        } catch (error) {
-                                                            alert("Failed to update vehicle");
+                                                onClick={() => {
+                                                    confirm({
+                                                        title: 'Reset Status',
+                                                        message: 'Move this vehicle back to pending review?',
+                                                        onConfirm: async () => {
+                                                            try {
+                                                                await adminApi.verifyVehicle(vehicle._id, false);
+                                                                fetchVerifications();
+                                                                showAlert("Reset", "Vehicle is now pending review.", 'success');
+                                                            } catch (error) {
+                                                                showAlert("Error", "Failed to update vehicle", 'alert');
+                                                            }
                                                         }
-                                                    }
+                                                    });
                                                 }}
                                                 className="w-full py-2 mt-2 bg-slate-50 text-slate-500 hover:bg-slate-100 text-[10px] font-bold rounded-lg border border-slate-200 transition-all uppercase tracking-wider"
                                             >

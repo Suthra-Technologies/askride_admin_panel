@@ -12,8 +12,23 @@ import {
     Percent,
     Clock
 } from 'lucide-react';
+import { useDialog } from '../../context/DialogContext';
 
 const Settings: React.FC = () => {
+    const { confirm, showAlert } = useDialog();
+
+    const handleSavePricing = () => {
+        confirm({
+            title: 'Save Changes',
+            message: 'Are you sure you want to update the platform pricing? This will affect all new ride bookings immediately.',
+            type: 'confirm',
+            confirmText: 'Update Pricing',
+            onConfirm: () => {
+                // In a real app, call API here
+                showAlert("Settings Updated", "The pricing and revenue configuration has been saved successfully.", 'success');
+            }
+        });
+    };
     return (
         <div className="max-w-6xl mx-auto space-y-8 animate-fade-in">
             <div>
@@ -91,7 +106,10 @@ const Settings: React.FC = () => {
                             </div>
                         </div>
                         <div className="p-8 bg-slate-50 dark:bg-slate-800/50 flex justify-end">
-                            <button className="px-8 py-3 bg-[#F9BB06] hover:bg-primary-700 text-[#1A1A1A] rounded-2xl font-bold transition-all flex items-center gap-2 shadow-lg shadow-primary-100 dark:shadow-none">
+                            <button
+                                onClick={handleSavePricing}
+                                className="px-8 py-3 bg-[#F9BB06] hover:bg-primary-700 text-[#1A1A1A] rounded-2xl font-bold transition-all flex items-center gap-2 shadow-lg shadow-primary-100 dark:shadow-none"
+                            >
                                 <Save className="w-4 h-4" /> Save Pricing Changes
                             </button>
                         </div>

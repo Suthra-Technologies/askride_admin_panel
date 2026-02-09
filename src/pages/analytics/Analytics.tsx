@@ -24,6 +24,7 @@ import {
     AreaChart,
     Area
 } from 'recharts';
+import { motion, AnimatePresence } from 'framer-motion';
 import { adminApi } from '../../services/api';
 import StatsCard from '../../components/dashboard/StatsCard';
 
@@ -80,41 +81,141 @@ const Analytics: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-                {/* Main Growth Chart */}
-                <div className="xl:col-span-2 bg-white dark:bg-slate-900 p-8 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800">
-                    <div className="flex items-center justify-between mb-8">
-                        <h3 className="text-xl font-bold dark:text-white">Growth Trends (Last 7 Days)</h3>
-                        <div className="flex gap-4">
-                            <span className="flex items-center gap-1.5 text-xs font-bold text-slate-500"><div className="w-2 h-2 rounded-full bg-sky-500" /> Revenue (₹)</span>
-                            <span className="flex items-center gap-1.5 text-xs font-bold text-slate-500"><div className="w-2 h-2 rounded-full bg-primary-500" /> Users</span>
+                {/* Main Growth Chart with Liquid Glass Effect */}
+                <motion.div
+                    initial={{ opacity: 0, y: 30, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    transition={{ type: "spring", stiffness: 100, damping: 15, mass: 1 }}
+                    className="xl:col-span-2 relative overflow-hidden glass p-8 rounded-[2.5rem] shadow-[0_20px_50px_rgba(249,187,6,0.1)] border border-white/30 dark:border-slate-800/50"
+                >
+                    {/* Animated Liquid Blobs in Background */}
+                    <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-30">
+                        <motion.div
+                            animate={{
+                                x: [0, 50, -30, 0],
+                                y: [0, -40, 60, 0],
+                                scale: [1, 1.2, 0.9, 1],
+                                rotate: [0, 90, 180, 0]
+                            }}
+                            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                            className="absolute -top-20 -left-20 w-80 h-80 bg-primary-400/20 blur-[80px] rounded-full"
+                        />
+                        <motion.div
+                            animate={{
+                                x: [0, -60, 40, 0],
+                                y: [0, 50, -30, 0],
+                                scale: [1, 0.8, 1.1, 1],
+                                rotate: [0, -120, -240, 0]
+                            }}
+                            transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+                            className="absolute -bottom-40 -right-20 w-[400px] h-[400px] bg-primary-600/10 blur-[100px] rounded-full"
+                        />
+                    </div>
+
+                    <div className="relative z-10">
+                        <div className="flex items-center justify-between mb-8">
+                            <div>
+                                <h3 className="text-xl font-bold dark:text-white flex items-center gap-2">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-primary-500 animate-ping" />
+                                    Growth Trends (Last 7 Days)
+                                </h3>
+                                <p className="text-xs text-slate-500 mt-1">Real-time performance distribution</p>
+                            </div>
+                            <div className="flex gap-4">
+                                <span className="flex items-center gap-1.5 text-xs font-bold text-slate-500">
+                                    <div className="w-2.5 h-2.5 rounded-full bg-primary-500/30 border border-primary-500" /> Revenue
+                                </span>
+                                <span className="flex items-center gap-1.5 text-xs font-bold text-slate-500">
+                                    <div className="w-2.5 h-2.5 rounded-full bg-primary-500" /> Users
+                                </span>
+                            </div>
+                        </div>
+
+                        <div className="h-[400px] w-full">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <AreaChart data={growthData}>
+                                    <defs>
+                                        <filter id="liquidEffect">
+                                            <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur" />
+                                            <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -7" result="goo" />
+                                            <feComposite in="SourceGraphic" in2="goo" operator="atop" />
+                                        </filter>
+
+                                        <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="#f9bb06" stopOpacity={0.3} />
+                                            <stop offset="40%" stopColor="#f9bb06" stopOpacity={0.1} />
+                                            <stop offset="95%" stopColor="#f9bb06" stopOpacity={0} />
+                                        </linearGradient>
+                                        <linearGradient id="colorUsers" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="#f9bb06" stopOpacity={0.5} />
+                                            <stop offset="60%" stopColor="#f9bb06" stopOpacity={0.2} />
+                                            <stop offset="95%" stopColor="#f9bb06" stopOpacity={0} />
+                                        </linearGradient>
+                                    </defs>
+
+                                    <CartesianGrid
+                                        strokeDasharray="8 8"
+                                        vertical={false}
+                                        stroke="rgba(148, 163, 184, 0.1)"
+                                    />
+
+                                    <XAxis
+                                        dataKey="name"
+                                        axisLine={false}
+                                        tickLine={false}
+                                        tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: 600 }}
+                                        dy={15}
+                                    />
+
+                                    <YAxis
+                                        axisLine={false}
+                                        tickLine={false}
+                                        tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: 600 }}
+                                        dx={-10}
+                                    />
+
+                                    <Tooltip
+                                        cursor={{ stroke: 'rgba(249, 187, 6, 0.2)', strokeWidth: 2 }}
+                                        contentStyle={{
+                                            backgroundColor: 'rgba(30, 41, 59, 0.8)',
+                                            backdropFilter: 'blur(12px)',
+                                            border: '1px solid rgba(255, 255, 255, 0.1)',
+                                            borderRadius: '20px',
+                                            color: '#fff',
+                                            padding: '16px',
+                                            boxShadow: '0 10px 30px rgba(0,0,0,0.3)'
+                                        }}
+                                        itemStyle={{ color: '#fff', fontSize: '13px', fontWeight: 'bold' }}
+                                    />
+
+                                    {/* Liquid Area Gradients */}
+                                    <Area
+                                        type="monotone"
+                                        dataKey="revenue"
+                                        stroke="#f9bb06"
+                                        strokeWidth={1}
+                                        strokeDasharray="5 5"
+                                        fillOpacity={1}
+                                        fill="url(#colorRev)"
+                                        animationDuration={2500}
+                                        animationEasing="ease-in-out"
+                                    />
+                                    <Area
+                                        type="monotone"
+                                        dataKey="users"
+                                        stroke="#f9bb06"
+                                        strokeWidth={4}
+                                        fillOpacity={1}
+                                        fill="url(#colorUsers)"
+                                        animationDuration={2000}
+                                        animationEasing="ease-in-out"
+                                        style={{ filter: 'url(#liquidEffect)' }}
+                                    />
+                                </AreaChart>
+                            </ResponsiveContainer>
                         </div>
                     </div>
-                    <div className="h-[400px]">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <AreaChart data={growthData}>
-                                <defs>
-                                    <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.1} />
-                                        <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0} />
-                                    </linearGradient>
-                                    <linearGradient id="colorUsers" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#f9bb06" stopOpacity={0.1} />
-                                        <stop offset="95%" stopColor="#f9bb06" stopOpacity={0} />
-                                    </linearGradient>
-                                </defs>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f9f1ff" />
-                                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} dy={15} />
-                                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
-                                <Tooltip
-                                    contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '16px', color: '#fff', padding: '12px' }}
-                                    itemStyle={{ color: '#fff' }}
-                                />
-                                <Area type="monotone" dataKey="revenue" stroke="#f9bb06" strokeWidth={4} fillOpacity={1} fill="url(#colorRev)" />
-                                <Area type="monotone" dataKey="users" stroke="#f9bb06" strokeWidth={4} fillOpacity={1} fill="url(#colorUsers)" />
-                            </AreaChart>
-                        </ResponsiveContainer>
-                    </div>
-                </div>
+                </motion.div>
 
                 {/* Breakdown Card */}
                 <div className="bg-white dark:bg-slate-900 p-8 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800">

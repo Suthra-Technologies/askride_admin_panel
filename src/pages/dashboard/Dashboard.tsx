@@ -42,7 +42,7 @@ const Dashboard: React.FC = () => {
             try {
                 const [statsRes, ridesRes] = await Promise.all([
                     adminApi.getStats(),
-                    adminApi.getRides({ limit: 5 })
+                    adminApi.getRides({ limit: 10 })
                 ]);
                 setStats(statsRes.data);
                 setRecentRides(ridesRes.data);

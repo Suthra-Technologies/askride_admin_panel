@@ -13,12 +13,14 @@ import {
     Shield
 } from 'lucide-react';
 import { adminApi } from '../../services/api';
+import { useDialog } from '../../context/DialogContext';
 
 const Users: React.FC = () => {
     const [users, setUsers] = useState<any[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
     const [isLoading, setIsLoading] = useState(true);
+    const { confirm, showAlert } = useDialog();
 
     const fetchUsers = async () => {
         setIsLoading(true);
@@ -43,13 +45,21 @@ const Users: React.FC = () => {
     }, [searchTerm, statusFilter]);
 
     const handleBlockUser = async (id: string, currentlyBlocked: boolean) => {
-        if (!window.confirm(`Are you sure you want to ${currentlyBlocked ? 'unblock' : 'block'} this user?`)) return;
-        try {
-            await adminApi.blockUser(id, !currentlyBlocked);
-            fetchUsers();
-        } catch (error) {
-            alert("Action failed");
-        }
+        confirm({
+            title: currentlyBlocked ? 'Unblock User' : 'Block User',
+            message: `Are you sure you want to ${currentlyBlocked ? 'unblock' : 'block'} this user? This will ${currentlyBlocked ? 'restore' : 'restrict'} their access to the platform.`,
+            type: currentlyBlocked ? 'success' : 'danger',
+            confirmText: currentlyBlocked ? 'Unblock' : 'Block User',
+            onConfirm: async () => {
+                try {
+                    await adminApi.blockUser(id, !currentlyBlocked);
+                    fetchUsers();
+                    showAlert("Success", `User has been ${currentlyBlocked ? 'unblocked' : 'blocked'} successfully.`, 'success');
+                } catch (error) {
+                    showAlert("Action Failed", "We couldn't process this request. Please try again.", 'alert');
+                }
+            }
+        });
     };
 
     return (

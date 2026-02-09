@@ -21,9 +21,20 @@ function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
 }
 
+import LogoutModal from '../common/LogoutModal';
+
 const Sidebar: React.FC<{ isCollapsed: boolean; toggleCollapse: () => void }> = ({ isCollapsed, toggleCollapse }) => {
     const { logout } = useAuth();
     const [showLogoutDialog, setShowLogoutDialog] = React.useState(false);
+    const [logoutButtonRect, setLogoutButtonRect] = React.useState<DOMRect | null>(null);
+    const logoutButtonRef = React.useRef<HTMLButtonElement>(null);
+
+    const handleLogoutClick = () => {
+        if (logoutButtonRef.current) {
+            setLogoutButtonRect(logoutButtonRef.current.getBoundingClientRect());
+        }
+        setShowLogoutDialog(true);
+    };
 
     const navItems = [
         { title: 'Dashboard', icon: LayoutDashboard, path: '/' },
@@ -89,7 +100,8 @@ const Sidebar: React.FC<{ isCollapsed: boolean; toggleCollapse: () => void }> = 
                 {/* Footer / Logout */}
                 <div className="p-4 border-t border-slate-200 dark:border-slate-800">
                     <button
-                        onClick={() => setShowLogoutDialog(true)}
+                        ref={logoutButtonRef}
+                        onClick={handleLogoutClick}
                         className={cn(
                             "flex items-center gap-4 px-3 py-3 w-full rounded-xl text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10 transition-all duration-200",
                             isCollapsed && "justify-center"
@@ -101,47 +113,12 @@ const Sidebar: React.FC<{ isCollapsed: boolean; toggleCollapse: () => void }> = 
                 </div>
             </aside>
 
-            {/* Logout Confirmation Dialog */}
-            {showLogoutDialog && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-                    {/* Backdrop */}
-                    <div
-                        className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm animate-fade-in"
-                        onClick={() => setShowLogoutDialog(false)}
-                    />
-
-                    {/* Dialog Content */}
-                    <div className="relative bg-white dark:bg-slate-900 w-full max-w-sm rounded-[32px] p-8 shadow-2xl border border-slate-100 dark:border-slate-800 animate-slide-in">
-                        <div className="flex flex-col items-center text-center">
-                            <div className="w-20 h-20 bg-red-50 dark:bg-red-900/20 rounded-3xl flex items-center justify-center mb-6">
-                                <LogOut className="w-10 h-10 text-red-600" />
-                            </div>
-                            <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2 underline decoration-[#F9BB06] decoration-4 underline-offset-4">LOGOUT</h3>
-                            <p className="text-slate-500 dark:text-slate-400 font-medium px-4">
-                                Are you sure you want to exit the session?
-                            </p>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4 mt-10">
-                            <button
-                                onClick={() => setShowLogoutDialog(false)}
-                                className="py-4 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-900 dark:text-white font-bold rounded-2xl transition-all"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={() => {
-                                    setShowLogoutDialog(false);
-                                    logout();
-                                }}
-                                className="py-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded-2xl shadow-lg shadow-red-200 dark:shadow-none transition-all"
-                            >
-                                Logout
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <LogoutModal
+                isOpen={showLogoutDialog}
+                onClose={() => setShowLogoutDialog(false)}
+                onLogout={logout}
+                triggerRect={logoutButtonRect}
+            />
         </>
     );
 };
