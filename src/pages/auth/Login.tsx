@@ -33,7 +33,7 @@ const Login: React.FC = () => {
                         <Navigation className="text-white w-8 h-8" />
                     </div>
                     <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white">Welcome Back</h1>
-                    <p className="text-slate-500 dark:text-slate-400 mt-2">Log in to your TravelMate Admin portal</p>
+                    <p className="text-slate-500 dark:text-slate-400 mt-2">Log in to your AskRide Admin portal</p>
                 </div>
 
                 <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-slate-800 p-8 animate-fade-in">
@@ -50,7 +50,7 @@ const Login: React.FC = () => {
                                         pattern: { value: /^\S+@\S+$/i, message: 'Invalid email' }
                                     })}
                                     type="email"
-                                    placeholder="admin@travelmate.com"
+                                    placeholder="admin@askride.com"
                                     className="block w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-slate-900 dark:text-white placeholder-slate-400 focus:ring-2 focus:ring-primary-500 transition-all font-medium"
                                 />
                             </div>
@@ -106,7 +106,7 @@ const Login: React.FC = () => {
                     </form>
 
                     <div className="mt-12 text-center">
-                        <p className="text-xs text-slate-400">TravelMate Security Systems v2.4.0</p>
+                        <p className="text-xs text-slate-400">AskRide Security Systems v2.4.0</p>
                     </div>
                 </div>
 

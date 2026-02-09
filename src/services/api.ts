@@ -7,7 +7,7 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('tm_admin_token');
+  const token = localStorage.getItem('askride_admin_token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }

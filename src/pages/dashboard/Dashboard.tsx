@@ -8,7 +8,8 @@ import {
     Clock,
     TrendingUp,
     MapPin,
-    ArrowRight
+    ArrowRight,
+    IndianRupee
 } from 'lucide-react';
 import {
     BarChart,
@@ -74,7 +75,7 @@ const Dashboard: React.FC = () => {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Admin Dashboard</h1>
-                    <p className="text-slate-500 dark:text-slate-400 mt-1">Real-time overview of TravelMate operations.</p>
+                    <p className="text-slate-500 dark:text-slate-400 mt-1">Real-time overview of AskRide operations.</p>
                 </div>
             </div>
 
@@ -97,10 +98,11 @@ const Dashboard: React.FC = () => {
                 <StatsCard
                     title="Revenue"
                     value={`₹${(stats?.totalRevenue || 0).toLocaleString()}`}
-                    icon={DollarSign}
+                    icon={IndianRupee}
                     trend={{ value: 15, isUp: true }}
                     color="success"
                 />
+
                 <StatsCard
                     title="Average Rating"
                     value={4.7}

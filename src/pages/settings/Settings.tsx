@@ -8,6 +8,7 @@ import {
     User,
     Save,
     DollarSign,
+    IndianRupee,
     Percent,
     Clock
 } from 'lucide-react';
@@ -25,7 +26,7 @@ const Settings: React.FC = () => {
                 <div className="lg:col-span-1 space-y-2">
                     {[
                         { id: 'general', label: 'General Settings', icon: Globe, active: true },
-                        { id: 'pricing', label: 'Pricing & Commission', icon: DollarSign },
+                        { id: 'pricing', label: 'Pricing & Commission', icon: IndianRupee },
                         { id: 'profile', label: 'Admin Profile', icon: User },
                         { id: 'security', label: 'Security & Auth', icon: Shield },
                         { id: 'notifications', label: 'Notification Rules', icon: Bell },
@@ -50,7 +51,7 @@ const Settings: React.FC = () => {
                     <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden">
                         <div className="p-8 border-b border-slate-50 dark:border-slate-800">
                             <h3 className="text-xl font-bold dark:text-white flex items-center gap-2">
-                                <DollarSign className="w-6 h-6 text-primary-600" /> Pricing & Revenue Configuration
+                                <IndianRupee className="w-6 h-6 text-primary-600" /> Pricing & Revenue Configuration
                             </h3>
                             <p className="text-sm text-slate-500 mt-1">Manage fare calculations and platform fees.</p>
                         </div>
@@ -60,7 +61,7 @@ const Settings: React.FC = () => {
                                     <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-3">Base Fare (Per KM)</label>
                                     <div className="relative">
                                         <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
-                                            <DollarSign className="w-4 h-4" />
+                                            <IndianRupee className="w-4 h-4" />
                                         </div>
                                         <input type="number" defaultValue="2.50" className="block w-full pl-10 pr-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-800 border-none focus:ring-2 focus:ring-primary-500 font-bold dark:text-white" />
                                     </div>

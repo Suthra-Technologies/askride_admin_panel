@@ -18,8 +18,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     useEffect(() => {
         // Check for stored auth data
-        const storedUser = localStorage.getItem('tm_admin_user');
-        const storedToken = localStorage.getItem('tm_admin_token');
+        const storedUser = localStorage.getItem('askride_admin_user');
+        const storedToken = localStorage.getItem('askride_admin_token');
 
         if (storedUser && storedToken) {
             setUser(JSON.parse(storedUser));
@@ -29,15 +29,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, []);
 
     const login = (email: string, token: string, userData: AdminUser) => {
-        localStorage.setItem('tm_admin_token', token);
-        localStorage.setItem('tm_admin_user', JSON.stringify(userData));
+        localStorage.setItem('askride_admin_token', token);
+        localStorage.setItem('askride_admin_user', JSON.stringify(userData));
         setUser(userData);
         setIsAuthenticated(true);
     };
 
     const logout = () => {
-        localStorage.removeItem('tm_admin_token');
-        localStorage.removeItem('tm_admin_user');
+        localStorage.removeItem('askride_admin_token');
+        localStorage.removeItem('askride_admin_user');
         setUser(null);
         setIsAuthenticated(false);
     };

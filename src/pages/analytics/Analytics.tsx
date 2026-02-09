@@ -7,6 +7,7 @@ import {
     Calendar,
     Filter,
     DollarSign,
+    IndianRupee,
     PieChart as PieChartIcon
 } from 'lucide-react';
 import {
@@ -72,7 +73,7 @@ const Analytics: React.FC = () => {
 
             {/* Financial Overview */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <StatsCard title="Total Revenue" value={`₹${totalMonthlyRevenue.toLocaleString()}`} icon={DollarSign} trend={{ value: 24, isUp: true }} color="success" />
+                <StatsCard title="Total Revenue" value={`₹${totalMonthlyRevenue.toLocaleString()}`} icon={IndianRupee} trend={{ value: 24, isUp: true }} color="success" />
                 <StatsCard title="Avg. Ticket Size" value="₹450" icon={TrendingUp} trend={{ value: 5, isUp: true }} color="primary" />
                 <StatsCard title="User Acquisition" value={growthData.reduce((acc: any, cur: any) => acc + cur.users, 0)} icon={TrendingUp} trend={{ value: 12, isUp: true }} color="secondary" />
                 <StatsCard title="Churn Rate" value="1.8%" icon={TrendingDown} trend={{ value: 0.2, isUp: false }} color="error" />
@@ -84,8 +85,8 @@ const Analytics: React.FC = () => {
                     <div className="flex items-center justify-between mb-8">
                         <h3 className="text-xl font-bold dark:text-white">Growth Trends (Last 7 Days)</h3>
                         <div className="flex gap-4">
-                            <span className="flex items-center gap-1.5 text-xs font-bold text-slate-500"><div className="w-2 h-2 rounded-full bg-primary-500" /> Revenue (₹)</span>
-                            <span className="flex items-center gap-1.5 text-xs font-bold text-slate-500"><div className="w-2 h-2 rounded-full bg-secondary-500" /> Users</span>
+                            <span className="flex items-center gap-1.5 text-xs font-bold text-slate-500"><div className="w-2 h-2 rounded-full bg-sky-500" /> Revenue (₹)</span>
+                            <span className="flex items-center gap-1.5 text-xs font-bold text-slate-500"><div className="w-2 h-2 rounded-full bg-primary-500" /> Users</span>
                         </div>
                     </div>
                     <div className="h-[400px]">
@@ -93,15 +94,15 @@ const Analytics: React.FC = () => {
                             <AreaChart data={growthData}>
                                 <defs>
                                     <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#f9bb06" stopOpacity={0.1} />
-                                        <stop offset="95%" stopColor="#f9bb06" stopOpacity={0} />
-                                    </linearGradient>
-                                    <linearGradient id="colorUsers" x1="0" y1="0" x2="0" y2="1">
                                         <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.1} />
                                         <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0} />
                                     </linearGradient>
+                                    <linearGradient id="colorUsers" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#f9bb06" stopOpacity={0.1} />
+                                        <stop offset="95%" stopColor="#f9bb06" stopOpacity={0} />
+                                    </linearGradient>
                                 </defs>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f9f1ff" />
                                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} dy={15} />
                                 <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
                                 <Tooltip
@@ -109,7 +110,7 @@ const Analytics: React.FC = () => {
                                     itemStyle={{ color: '#fff' }}
                                 />
                                 <Area type="monotone" dataKey="revenue" stroke="#f9bb06" strokeWidth={4} fillOpacity={1} fill="url(#colorRev)" />
-                                <Area type="monotone" dataKey="users" stroke="#0ea5e9" strokeWidth={4} fillOpacity={1} fill="url(#colorUsers)" />
+                                <Area type="monotone" dataKey="users" stroke="#f9bb06" strokeWidth={4} fillOpacity={1} fill="url(#colorUsers)" />
                             </AreaChart>
                         </ResponsiveContainer>
                     </div>
