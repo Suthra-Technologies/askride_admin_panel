@@ -108,22 +108,22 @@ const Analytics: React.FC = () => {
                                 rotate: [0, -120, -240, 0]
                             }}
                             transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
-                            className="absolute -bottom-40 -right-20 w-[400px] h-[400px] bg-primary-600/10 blur-[100px] rounded-full"
+                            className="absolute -bottom-40 -right-20 w-[400px] h-[400px] bg-secondary-500/10 blur-[100px] rounded-full"
                         />
                     </div>
 
                     <div className="relative z-10">
                         <div className="flex items-center justify-between mb-8">
                             <div>
-                                <h3 className="text-xl font-bold dark:text-white flex items-center gap-2">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-primary-500 animate-ping" />
-                                    Growth Trends (Last 7 Days)
+                                <h3 className="text-2xl font-black text-slate-800 dark:text-white tracking-tight flex items-center gap-3">
+                                    <div className="w-2.5 h-2.5 rounded-full bg-primary-500 shadow-[0_0_10px_rgba(249,187,6,0.5)]" />
+                                    Growth Trends
                                 </h3>
                                 <p className="text-xs text-slate-500 mt-1">Real-time performance distribution</p>
                             </div>
                             <div className="flex gap-4">
                                 <span className="flex items-center gap-1.5 text-xs font-bold text-slate-500">
-                                    <div className="w-2.5 h-2.5 rounded-full bg-primary-500/30 border border-primary-500" /> Revenue
+                                    <div className="w-2.5 h-2.5 rounded-full bg-secondary-500/90 border border-secondary-500" /> Revenue
                                 </span>
                                 <span className="flex items-center gap-1.5 text-xs font-bold text-slate-500">
                                     <div className="w-2.5 h-2.5 rounded-full bg-primary-500" /> Users
@@ -133,22 +133,16 @@ const Analytics: React.FC = () => {
 
                         <div className="h-[400px] w-full">
                             <ResponsiveContainer width="100%" height="100%">
-                                <AreaChart data={growthData}>
+                                <AreaChart data={growthData} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
                                     <defs>
-                                        <filter id="liquidEffect">
-                                            <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur" />
-                                            <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -7" result="goo" />
-                                            <feComposite in="SourceGraphic" in2="goo" operator="atop" />
-                                        </filter>
-
                                         <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor="#f9bb06" stopOpacity={0.3} />
-                                            <stop offset="40%" stopColor="#f9bb06" stopOpacity={0.1} />
-                                            <stop offset="95%" stopColor="#f9bb06" stopOpacity={0} />
+                                            <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
+                                            <stop offset="40%" stopColor="#6366f1" stopOpacity={0.1} />
+                                            <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
                                         </linearGradient>
                                         <linearGradient id="colorUsers" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor="#f9bb06" stopOpacity={0.5} />
-                                            <stop offset="60%" stopColor="#f9bb06" stopOpacity={0.2} />
+                                            <stop offset="5%" stopColor="#f9bb06" stopOpacity={0.4} />
+                                            <stop offset="50%" stopColor="#f9bb06" stopOpacity={0.15} />
                                             <stop offset="95%" stopColor="#f9bb06" stopOpacity={0} />
                                         </linearGradient>
                                     </defs>
@@ -163,36 +157,35 @@ const Analytics: React.FC = () => {
                                         dataKey="name"
                                         axisLine={false}
                                         tickLine={false}
-                                        tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: 600 }}
+                                        tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: 700 }}
                                         dy={15}
                                     />
 
                                     <YAxis
                                         axisLine={false}
                                         tickLine={false}
-                                        tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: 600 }}
+                                        tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: 700 }}
                                         dx={-10}
                                     />
 
                                     <Tooltip
-                                        cursor={{ stroke: 'rgba(249, 187, 6, 0.2)', strokeWidth: 2 }}
+                                        cursor={{ stroke: 'rgba(99, 102, 241, 0.1)', strokeWidth: 20 }}
                                         contentStyle={{
-                                            backgroundColor: 'rgba(30, 41, 59, 0.8)',
-                                            backdropFilter: 'blur(12px)',
+                                            backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                                            backdropFilter: 'blur(16px)',
                                             border: '1px solid rgba(255, 255, 255, 0.1)',
-                                            borderRadius: '20px',
-                                            color: '#fff',
-                                            padding: '16px',
-                                            boxShadow: '0 10px 30px rgba(0,0,0,0.3)'
+                                            borderRadius: '24px',
+                                            padding: '20px',
+                                            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
                                         }}
-                                        itemStyle={{ color: '#fff', fontSize: '13px', fontWeight: 'bold' }}
+                                        itemStyle={{ fontSize: '14px', fontWeight: '800', padding: '2px 0' }}
                                     />
 
                                     {/* Liquid Area Gradients */}
                                     <Area
                                         type="monotone"
                                         dataKey="revenue"
-                                        stroke="#f9bb06"
+                                        stroke="#6366f1"
                                         strokeWidth={1}
                                         strokeDasharray="5 5"
                                         fillOpacity={1}
@@ -209,7 +202,6 @@ const Analytics: React.FC = () => {
                                         fill="url(#colorUsers)"
                                         animationDuration={2000}
                                         animationEasing="ease-in-out"
-                                        style={{ filter: 'url(#liquidEffect)' }}
                                     />
                                 </AreaChart>
                             </ResponsiveContainer>
@@ -222,7 +214,7 @@ const Analytics: React.FC = () => {
                     <h3 className="text-xl font-bold dark:text-white mb-8">Performance Summary</h3>
                     <div className="space-y-6">
                         {[
-                            { label: 'Platform Usage', value: 'High', percent: 85, color: 'bg-primary-500' },
+                            { label: 'Platform Usage', value: 'High', percent: 85, color: 'bg-secondary-500' },
                             { label: 'Driver Activity', value: 'Moderate', percent: 62, color: 'bg-emerald-500' },
                             { label: 'Cancellation Rate', value: '4.2%', percent: 12, color: 'bg-rose-500' },
                             { label: 'App Uptime', value: '99.9%', percent: 99, color: 'bg-secondary-500' },
