@@ -8,7 +8,9 @@ import {
     Filter,
     DollarSign,
     IndianRupee,
-    PieChart as PieChartIcon
+    PieChart as PieChartIcon,
+    Smartphone,
+    Apple
 } from 'lucide-react';
 import {
     BarChart,
@@ -73,11 +75,13 @@ const Analytics: React.FC = () => {
             </div>
 
             {/* Financial Overview */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
                 <StatsCard title="Total Revenue" value={`₹${totalMonthlyRevenue.toLocaleString()}`} icon={IndianRupee} trend={{ value: 24, isUp: true }} color="success" />
                 <StatsCard title="Avg. Ticket Size" value="₹450" icon={TrendingUp} trend={{ value: 5, isUp: true }} color="primary" />
                 <StatsCard title="User Acquisition" value={growthData.reduce((acc: any, cur: any) => acc + cur.users, 0)} icon={TrendingUp} trend={{ value: 12, isUp: true }} color="secondary" />
                 <StatsCard title="Churn Rate" value="1.8%" icon={TrendingDown} trend={{ value: 0.2, isUp: false }} color="error" />
+                <StatsCard title="Android Downloads" value={analytics?.platformStats?.android || 0} icon={Smartphone} color="primary" />
+                <StatsCard title="iOS Downloads" value={analytics?.platformStats?.ios || 0} icon={Apple} color="secondary" />
             </div>
 
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">

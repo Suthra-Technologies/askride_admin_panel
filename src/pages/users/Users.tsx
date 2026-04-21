@@ -10,8 +10,17 @@ import {
     Mail,
     Calendar,
     Star as StarIcon,
-    Shield
+    Shield,
+    Download,
+    FileSpreadsheet,
+    FileText,
+    ChevronDown,
+    Smartphone,
+    Apple
 } from 'lucide-react';
+import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import { adminApi } from '../../services/api';
 import { useDialog } from '../../context/DialogContext';
 
@@ -20,6 +29,7 @@ const Users: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
     const [isLoading, setIsLoading] = useState(true);
+    const [showExportDropdown, setShowExportDropdown] = useState(false);
     const { confirm, showAlert } = useDialog();
 
     const fetchUsers = async () => {
@@ -62,6 +72,46 @@ const Users: React.FC = () => {
         });
     };
 
+    const handleExportExcel = () => {
+        const data = users.map(user => ({
+            'Name': `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'N/A',
+            'Email': user.email || 'N/A',
+            'Role': user.role,
+            'Status': user.isBlocked ? 'Blocked' : 'Active',
+            'Phone': user.phone
+        }));
+
+        const worksheet = XLSX.utils.json_to_sheet(data);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Users");
+        XLSX.writeFile(workbook, "Users_Data.xlsx");
+        setShowExportDropdown(false);
+    };
+
+    const handleExportPDF = () => {
+        const doc = new jsPDF();
+        const tableColumn = ["Name", "Email", "Role", "Status", "Phone"];
+        const tableRows = users.map(user => [
+            `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'N/A',
+            user.email || 'N/A',
+            user.role,
+            user.isBlocked ? 'Blocked' : 'Active',
+            user.phone
+        ]);
+
+        autoTable(doc, {
+            head: [tableColumn],
+            body: tableRows,
+            startY: 20,
+            theme: 'striped',
+            headStyles: { fillColor: [79, 70, 229] } // primary-600
+        });
+
+        doc.text("User Management Data", 14, 15);
+        doc.save("Users_Data.pdf");
+        setShowExportDropdown(false);
+    };
+
     return (
         <div className="space-y-8 animate-fade-in">
             <div>
@@ -95,6 +145,42 @@ const Users: React.FC = () => {
                             <option value="incomplete">Incomplete</option>
                         </select>
                     </div>
+
+                    <div className="relative">
+                        <button
+                            onClick={() => setShowExportDropdown(!showExportDropdown)}
+                            className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-xl text-sm font-bold transition-all shadow-lg shadow-primary-200 dark:shadow-none"
+                        >
+                            <Download className="w-4 h-4" />
+                            Export
+                            <ChevronDown className={`w-4 h-4 transition-transform ${showExportDropdown ? 'rotate-180' : ''}`} />
+                        </button>
+
+                        {showExportDropdown && (
+                            <>
+                                <div
+                                    className="fixed inset-0 z-10"
+                                    onClick={() => setShowExportDropdown(false)}
+                                />
+                                <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-100 dark:border-slate-700 overflow-hidden z-20 animate-in fade-in zoom-in duration-200">
+                                    <button
+                                        onClick={handleExportExcel}
+                                        className="w-full flex items-center gap-3 px-4 py-3 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
+                                    >
+                                        <FileSpreadsheet className="w-4 h-4 text-emerald-500" />
+                                        Excel Format
+                                    </button>
+                                    <button
+                                        onClick={handleExportPDF}
+                                        className="w-full flex items-center gap-3 px-4 py-3 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
+                                    >
+                                        <FileText className="w-4 h-4 text-rose-500" />
+                                        PDF Format
+                                    </button>
+                                </div>
+                            </>
+                        )}
+                    </div>
                 </div>
             </div>
 
@@ -106,6 +192,7 @@ const Users: React.FC = () => {
                                 <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">User Info</th>
                                 <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Role</th>
                                 <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Status</th>
+                                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Platform</th>
                                 <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Phone</th>
                                 <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Actions</th>
                             </tr>
@@ -143,6 +230,23 @@ const Users: React.FC = () => {
                                             <div className={`w-1.5 h-1.5 rounded-full ${!user.isBlocked ? 'bg-emerald-500' : 'bg-rose-500'}`} />
                                             {user.isBlocked ? 'Blocked' : 'Active'}
                                         </span>
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <div className="flex items-center gap-1.5">
+                                            {user.platform === 'android' ? (
+                                                <div className="flex items-center gap-1 text-xs font-bold text-slate-600 dark:text-slate-400">
+                                                    <Smartphone className="w-3.5 h-3.5 text-primary-500" /> Android
+                                                </div>
+                                            ) : user.platform === 'ios' ? (
+                                                <div className="flex items-center gap-1 text-xs font-bold text-slate-600 dark:text-slate-400">
+                                                    <Apple className="w-3.5 h-3.5 text-slate-900 dark:text-white" /> iOS
+                                                </div>
+                                            ) : (
+                                                <div className="flex items-center gap-1 text-xs font-bold text-slate-400">
+                                                    <Download className="w-3.5 h-3.5" /> Web/Other
+                                                </div>
+                                            )}
+                                        </div>
                                     </td>
                                     <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400 font-mono">
                                         {user.phone}
