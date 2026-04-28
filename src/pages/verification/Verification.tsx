@@ -16,13 +16,20 @@ const Verification: React.FC = () => {
     const [verifications, setVerifications] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [filter, setFilter] = useState<'all' | 'pending' | 'verified'>('all');
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalVerifications, setTotalVerifications] = useState(0);
+    const itemsPerPage = 10;
     const { confirm, showAlert } = useDialog();
 
     const fetchVerifications = async () => {
         setIsLoading(true);
         try {
-            const res = await adminApi.getVerifications();
-            setVerifications(res.data);
+            const res = await adminApi.getVerifications({
+                page: currentPage,
+                limit: itemsPerPage
+            });
+            setVerifications(res.data.data);
+            setTotalVerifications(res.data.total);
         } catch (error) {
             console.error("Failed to fetch verifications", error);
         } finally {
@@ -32,7 +39,9 @@ const Verification: React.FC = () => {
 
     useEffect(() => {
         fetchVerifications();
-    }, []);
+    }, [currentPage]);
+
+    const totalPages = Math.ceil(totalVerifications / itemsPerPage);
 
     const filteredVerifications = verifications.filter(driver => {
         if (filter === 'all') return true;
@@ -380,6 +389,55 @@ const Verification: React.FC = () => {
                     </div>
                 )}
             </div>
+
+            {/* Pagination UI */}
+            {totalVerifications > 0 && (
+                <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-sm border border-slate-100 dark:border-slate-800 flex flex-col md:flex-row items-center justify-between gap-4">
+                    <div className="text-sm text-slate-500 dark:text-slate-400 font-medium">
+                        Showing <span className="font-bold text-slate-900 dark:text-white">{Math.min((currentPage - 1) * itemsPerPage + 1, totalVerifications)}</span> to <span className="font-bold text-slate-900 dark:text-white">{Math.min(currentPage * itemsPerPage, totalVerifications)}</span> of <span className="font-bold text-slate-900 dark:text-white">{totalVerifications}</span> entries
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                            disabled={currentPage === 1}
+                            className="px-4 py-2 text-sm font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-all border border-slate-200 dark:border-slate-700 shadow-sm"
+                        >
+                            Previous
+                        </button>
+                        
+                        <div className="flex items-center gap-1">
+                            {[...Array(Math.min(5, totalPages))].map((_, i) => {
+                                let pageNum = currentPage <= 3 ? i + 1 : currentPage + i - 2;
+                                if (pageNum > totalPages) pageNum = totalPages - (Math.min(5, totalPages) - 1) + i;
+                                if (pageNum < 1) pageNum = i + 1;
+
+                                return (
+                                    <button
+                                        key={i}
+                                        onClick={() => setCurrentPage(pageNum)}
+                                        className={`w-10 h-10 flex items-center justify-center rounded-xl text-sm font-bold transition-all ${
+                                            currentPage === pageNum 
+                                            ? 'bg-primary-600 text-white shadow-lg shadow-primary-200 dark:shadow-none' 
+                                            : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 border border-transparent'
+                                        }`}
+                                    >
+                                        {pageNum}
+                                    </button>
+                                );
+                            })}
+                        </div>
+
+                        <button
+                            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                            disabled={currentPage === totalPages || totalPages === 0}
+                            className="px-4 py-2 text-sm font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-all border border-slate-200 dark:border-slate-700 shadow-sm"
+                        >
+                            Next
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {/* Verification Policy Card */}
             <div className="bg-primary-600 rounded-3xl p-8 text-white relative overflow-hidden shadow-xl shadow-primary-200 dark:shadow-none">

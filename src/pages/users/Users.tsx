@@ -30,6 +30,9 @@ const Users: React.FC = () => {
     const [statusFilter, setStatusFilter] = useState('all');
     const [isLoading, setIsLoading] = useState(true);
     const [showExportDropdown, setShowExportDropdown] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalUsers, setTotalUsers] = useState(0);
+    const itemsPerPage = 10;
     const { confirm, showAlert } = useDialog();
 
     const fetchUsers = async () => {
@@ -37,9 +40,12 @@ const Users: React.FC = () => {
         try {
             const res = await adminApi.getUsers({
                 search: searchTerm,
-                status: statusFilter !== 'all' ? statusFilter : undefined
+                status: statusFilter !== 'all' ? statusFilter : undefined,
+                page: currentPage,
+                limit: itemsPerPage
             });
-            setUsers(res.data);
+            setUsers(res.data.data);
+            setTotalUsers(res.data.total);
         } catch (error) {
             console.error("Failed to fetch users", error);
         } finally {
@@ -52,7 +58,12 @@ const Users: React.FC = () => {
             fetchUsers();
         }, 500);
         return () => clearTimeout(timeoutId);
-    }, [searchTerm, statusFilter]);
+    }, [searchTerm, statusFilter, currentPage]);
+
+    const totalPages = Math.ceil(totalUsers / itemsPerPage);
+
+    // ... handleBlockUser, handleExportExcel, handleExportPDF stay same ...
+    // (I'll keep them to avoid breaking the file, but focus on pagination UI)
 
     const handleBlockUser = async (id: string, currentlyBlocked: boolean) => {
         confirm({
@@ -275,6 +286,53 @@ const Users: React.FC = () => {
                             )}
                         </tbody>
                     </table>
+                </div>
+
+                {/* Pagination UI */}
+                <div className="px-6 py-4 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800 flex flex-col md:flex-row items-center justify-between gap-4">
+                    <div className="text-sm text-slate-500 dark:text-slate-400 font-medium">
+                        Showing <span className="font-bold text-slate-900 dark:text-white">{Math.min((currentPage - 1) * itemsPerPage + 1, totalUsers)}</span> to <span className="font-bold text-slate-900 dark:text-white">{Math.min(currentPage * itemsPerPage, totalUsers)}</span> of <span className="font-bold text-slate-900 dark:text-white">{totalUsers}</span> entries
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                            disabled={currentPage === 1}
+                            className="px-4 py-2 text-sm font-bold text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-all border border-slate-200 dark:border-slate-700 shadow-sm"
+                        >
+                            Previous
+                        </button>
+                        
+                        <div className="flex items-center gap-1">
+                            {[...Array(Math.min(5, totalPages))].map((_, i) => {
+                                let pageNum = currentPage <= 3 ? i + 1 : currentPage + i - 2;
+                                if (pageNum > totalPages) pageNum = totalPages - (Math.min(5, totalPages) - 1) + i;
+                                if (pageNum < 1) pageNum = i + 1;
+
+                                return (
+                                    <button
+                                        key={i}
+                                        onClick={() => setCurrentPage(pageNum)}
+                                        className={`w-10 h-10 flex items-center justify-center rounded-xl text-sm font-bold transition-all ${
+                                            currentPage === pageNum 
+                                            ? 'bg-primary-600 text-white shadow-lg shadow-primary-200 dark:shadow-none' 
+                                            : 'text-slate-500 hover:bg-white dark:hover:bg-slate-700 border border-transparent'
+                                        }`}
+                                    >
+                                        {pageNum}
+                                    </button>
+                                );
+                            })}
+                        </div>
+
+                        <button
+                            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                            disabled={currentPage === totalPages || totalPages === 0}
+                            className="px-4 py-2 text-sm font-bold text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-all border border-slate-200 dark:border-slate-700 shadow-sm"
+                        >
+                            Next
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

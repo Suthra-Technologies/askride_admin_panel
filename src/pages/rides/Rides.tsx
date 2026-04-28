@@ -20,13 +20,21 @@ const Rides: React.FC = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [statusFilter, setStatusFilter] = useState<string>('all');
     const [searchQuery, setSearchQuery] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalRides, setTotalRides] = useState(0);
+    const itemsPerPage = 10;
 
     const fetchRides = async () => {
         setIsLoading(true);
         try {
-            const params = statusFilter !== 'all' ? { status: statusFilter } : {};
+            const params = {
+                status: statusFilter !== 'all' ? statusFilter : undefined,
+                page: currentPage,
+                limit: itemsPerPage
+            };
             const res = await adminApi.getRides(params);
-            setRides(res.data);
+            setRides(res.data.data);
+            setTotalRides(res.data.total);
         } catch (error) {
             console.error("Failed to fetch rides", error);
         } finally {
@@ -36,7 +44,9 @@ const Rides: React.FC = () => {
 
     useEffect(() => {
         fetchRides();
-    }, [statusFilter]);
+    }, [statusFilter, currentPage]);
+
+    const totalPages = Math.ceil(totalRides / itemsPerPage);
 
     const filteredRides = rides.filter(ride =>
         ride.startLocationName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -225,6 +235,55 @@ const Rides: React.FC = () => {
                     </div>
                     <h3 className="text-xl font-bold dark:text-white mb-2">No active rides found</h3>
                     <p className="text-slate-500 dark:text-slate-400 max-w-sm mx-auto">There are no rides matching your current filter in the system.</p>
+                </div>
+            )}
+
+            {/* Pagination UI */}
+            {totalRides > 0 && (
+                <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-sm border border-slate-100 dark:border-slate-800 flex flex-col md:flex-row items-center justify-between gap-4">
+                    <div className="text-sm text-slate-500 dark:text-slate-400 font-medium">
+                        Showing <span className="font-bold text-slate-900 dark:text-white">{Math.min((currentPage - 1) * itemsPerPage + 1, totalRides)}</span> to <span className="font-bold text-slate-900 dark:text-white">{Math.min(currentPage * itemsPerPage, totalRides)}</span> of <span className="font-bold text-slate-900 dark:text-white">{totalRides}</span> entries
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                            disabled={currentPage === 1}
+                            className="px-4 py-2 text-sm font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-all border border-slate-200 dark:border-slate-700 shadow-sm"
+                        >
+                            Previous
+                        </button>
+                        
+                        <div className="flex items-center gap-1">
+                            {[...Array(Math.min(5, totalPages))].map((_, i) => {
+                                let pageNum = currentPage <= 3 ? i + 1 : currentPage + i - 2;
+                                if (pageNum > totalPages) pageNum = totalPages - (Math.min(5, totalPages) - 1) + i;
+                                if (pageNum < 1) pageNum = i + 1;
+
+                                return (
+                                    <button
+                                        key={i}
+                                        onClick={() => setCurrentPage(pageNum)}
+                                        className={`w-10 h-10 flex items-center justify-center rounded-xl text-sm font-bold transition-all ${
+                                            currentPage === pageNum 
+                                            ? 'bg-primary-600 text-white shadow-lg shadow-primary-200 dark:shadow-none' 
+                                            : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 border border-transparent'
+                                        }`}
+                                    >
+                                        {pageNum}
+                                    </button>
+                                );
+                            })}
+                        </div>
+
+                        <button
+                            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                            disabled={currentPage === totalPages || totalPages === 0}
+                            className="px-4 py-2 text-sm font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-all border border-slate-200 dark:border-slate-700 shadow-sm"
+                        >
+                            Next
+                        </button>
+                    </div>
                 </div>
             )}
         </div>
