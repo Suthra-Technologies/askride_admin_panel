@@ -5,7 +5,7 @@ interface AuthContextType {
     user: AdminUser | null;
     isAuthenticated: boolean;
     isLoading: boolean;
-    login: (email: string, token: string, userData: AdminUser) => void;
+    login: (token: string, userData: AdminUser) => void;
     logout: () => void;
 }
 
@@ -22,13 +22,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const storedToken = localStorage.getItem('askride_admin_token');
 
         if (storedUser && storedToken) {
-            setUser(JSON.parse(storedUser));
-            setIsAuthenticated(true);
+            try {
+                setUser(JSON.parse(storedUser));
+                setIsAuthenticated(true);
+            } catch (e) {
+                console.error("Failed to parse stored user", e);
+                localStorage.removeItem('askride_admin_user');
+                localStorage.removeItem('askride_admin_token');
+            }
         }
         setIsLoading(false);
     }, []);
 
-    const login = (email: string, token: string, userData: AdminUser) => {
+    const login = (token: string, userData: AdminUser) => {
         localStorage.setItem('askride_admin_token', token);
         localStorage.setItem('askride_admin_user', JSON.stringify(userData));
         setUser(userData);

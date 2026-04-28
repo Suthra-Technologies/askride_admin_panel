@@ -35,7 +35,7 @@ const VerifyOTP: React.FC = () => {
         try {
             const response = await authApi.verifyAdminOtp({ email, otp: data.otp });
             const { tokens, user } = response.data;
-            login(user.email, tokens.accessToken, {
+            login(tokens.accessToken, {
                 id: user.id,
                 email: user.email,
                 fullName: user.fullName,
