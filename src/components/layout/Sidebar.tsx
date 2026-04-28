@@ -22,6 +22,7 @@ function cn(...inputs: ClassValue[]) {
 }
 
 import LogoutModal from '../common/LogoutModal';
+import logo from '../../assets/images/logo.jpg';
 
 const Sidebar: React.FC<{ isCollapsed: boolean; toggleCollapse: () => void }> = ({ isCollapsed, toggleCollapse }) => {
     const { logout } = useAuth();
@@ -55,22 +56,38 @@ const Sidebar: React.FC<{ isCollapsed: boolean; toggleCollapse: () => void }> = 
                 )}
             >
                 {/* Logo Section */}
-                <div className="p-6 flex items-center justify-between">
-                    {!isCollapsed && (
-                        <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 bg-[#F9BB06] rounded-lg flex items-center justify-center">
-                                <Navigation className="text-white w-5 h-5" />
-                            </div>
-                            <span className="font-bold text-xl tracking-tight dark:text-white">AskRide</span>
+                <div className="p-4 flex items-center justify-between">
+                    <div className={cn("flex items-center gap-3 transition-all", isCollapsed ? "mx-auto" : "px-2")}>
+                        <div className="w-10 h-10 bg-white dark:bg-slate-800 rounded-xl flex items-center justify-center shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden shrink-0">
+                            <img src={logo} alt="Logo" className="w-full h-full object-contain" />
                         </div>
+                        {!isCollapsed && (
+                            <span className="font-black text-xl tracking-tighter">
+                                <span className="text-black">AskR</span>
+                                <span className="text-primary-500">ide</span>
+                            </span>
+                        )}
+                    </div>
+                    {!isCollapsed && (
+                        <button
+                            onClick={toggleCollapse}
+                            className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                        >
+                            <ChevronLeft className="w-5 h-5 dark:text-slate-400" />
+                        </button>
                     )}
-                    <button
-                        onClick={toggleCollapse}
-                        className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors mx-auto"
-                    >
-                        {isCollapsed ? <Menu className="w-5 h-5 dark:text-slate-400" /> : <ChevronLeft className="w-5 h-5 dark:text-slate-400" />}
-                    </button>
                 </div>
+
+                {isCollapsed && (
+                    <div className="flex justify-center mb-4">
+                        <button
+                            onClick={toggleCollapse}
+                            className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                        >
+                            <Menu className="w-5 h-5 dark:text-slate-400" />
+                        </button>
+                    </div>
+                )}
 
                 {/* Nav Items */}
                 <nav className="flex-1 px-4 space-y-2 mt-4">
