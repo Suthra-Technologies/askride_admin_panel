@@ -17,8 +17,13 @@ const Login: React.FC = () => {
     const onSubmit = async (data: any) => {
         setIsLoading(true);
         try {
-            await authApi.adminLogin({ email: data.email, password: data.password });
-            navigate('/verify-otp', { state: { email: data.email } });
+            const response = await authApi.adminLogin({ email: data.email, password: data.password });
+            if (response.data.tokens) {
+                login(response.data.tokens.accessToken, response.data.user);
+                navigate('/');
+            } else {
+                navigate('/verify-otp', { state: { email: data.email } });
+            }
         } catch (err: any) {
             showAlert("Login Failed", err.response?.data?.message || 'Please check your credentials and try again.', 'alert');
         } finally {
@@ -62,7 +67,6 @@ const Login: React.FC = () => {
                         <div>
                             <div className="flex items-center justify-between mb-2">
                                 <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300">Password</label>
-                                <Link to="/forgot-password" className="text-sm font-bold text-primary-600 hover:text-primary-700">Forgot Password?</Link>
                             </div>
                             <div className="relative">
                                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -113,14 +117,14 @@ const Login: React.FC = () => {
                 </div>
 
                 {/* Info card */}
-                <div className="mt-8 bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-800/20 p-4 rounded-2xl flex items-start gap-3">
+                {/* <div className="mt-8 bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-800/20 p-4 rounded-2xl flex items-start gap-3">
                     <CheckCircle2 className="w-5 h-5 text-blue-500 mt-0.5" />
                     <p className="text-sm text-blue-700 dark:text-blue-300">
                         Required credentials: <br />
                         <span className="font-bold">kodaliramu4@gmail.com</span> / <span className="font-bold">ramu1234</span><br />
                         Bypass OTP: <span className="font-bold text-blue-600 dark:text-blue-400">222222</span>
                     </p>
-                </div>
+                </div> */}
             </div>
         </div>
     );
