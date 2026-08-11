@@ -11,7 +11,10 @@ import {
     AlertCircle,
     User,
     CheckCircle2,
-    Loader2
+    Loader2,
+    LayoutGrid,
+    Radio,
+    XCircle
 } from 'lucide-react';
 import { adminApi } from '../../services/api';
 
@@ -22,6 +25,7 @@ const Rides: React.FC = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [totalRides, setTotalRides] = useState(0);
+    const [statusCounts, setStatusCounts] = useState<Record<string, number>>({});
     const itemsPerPage = 10;
 
     const fetchRides = async () => {
@@ -35,6 +39,7 @@ const Rides: React.FC = () => {
             const res = await adminApi.getRides(params);
             setRides(res.data.data);
             setTotalRides(res.data.total);
+            setStatusCounts(res.data.statusCounts || {});
         } catch (error) {
             console.error("Failed to fetch rides", error);
         } finally {
@@ -46,7 +51,20 @@ const Rides: React.FC = () => {
         fetchRides();
     }, [statusFilter, currentPage]);
 
+    // Switching status changes the result set, so page 4 of the old one is meaningless.
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [statusFilter]);
+
     const totalPages = Math.ceil(totalRides / itemsPerPage);
+
+    const statusCards = [
+        { key: 'all', label: 'Total Rides', icon: LayoutGrid, accent: 'text-slate-600 dark:text-slate-300', bg: 'bg-slate-100 dark:bg-slate-800', ring: 'ring-slate-400' },
+        { key: 'Published', label: 'Published', icon: Calendar, accent: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-50 dark:bg-amber-900/20', ring: 'ring-amber-400' },
+        { key: 'Ongoing', label: 'Ongoing', icon: Radio, accent: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-50 dark:bg-blue-900/20', ring: 'ring-blue-400' },
+        { key: 'Completed', label: 'Completed', icon: CheckCircle2, accent: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-900/20', ring: 'ring-emerald-400' },
+        { key: 'Cancelled', label: 'Cancelled', icon: XCircle, accent: 'text-rose-600 dark:text-rose-400', bg: 'bg-rose-50 dark:bg-rose-900/20', ring: 'ring-rose-400' },
+    ];
 
     const filteredRides = rides.filter(ride =>
         ride.startLocationName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -89,21 +107,38 @@ const Rides: React.FC = () => {
                             className="pl-10 pr-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm focus:ring-2 focus:ring-primary-500 transition-all outline-none dark:text-white w-64"
                         />
                     </div>
-                    <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
-                        {['all', 'Published', 'Ongoing', 'Completed'].map((f) => (
-                            <button
-                                key={f}
-                                onClick={() => setStatusFilter(f)}
-                                className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${statusFilter === f
-                                        ? 'bg-white dark:bg-slate-700 text-primary-600 shadow-sm'
-                                        : 'text-slate-500 hover:text-slate-700 dark:text-slate-400'
-                                    }`}
-                            >
-                                {f}
-                            </button>
-                        ))}
-                    </div>
                 </div>
+            </div>
+
+            {/* Status summary cards - click to filter the list below */}
+            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
+                {statusCards.map(({ key, label, icon: Icon, accent, bg, ring }) => {
+                    const isActive = statusFilter === key;
+                    return (
+                        <button
+                            key={key}
+                            type="button"
+                            onClick={() => setStatusFilter(key)}
+                            aria-pressed={isActive}
+                            className={`text-left bg-white dark:bg-slate-900 p-5 rounded-2xl border transition-all hover:shadow-md hover:-translate-y-0.5 ${isActive
+                                ? `border-transparent ring-2 ${ring} shadow-md`
+                                : 'border-slate-100 dark:border-slate-800 shadow-sm'
+                                }`}
+                        >
+                            <div className="flex items-start justify-between gap-3">
+                                <div>
+                                    <p className="text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">{label}</p>
+                                    <h3 className="text-2xl font-bold text-slate-900 dark:text-white">
+                                        {statusCounts[key] ?? 0}
+                                    </h3>
+                                </div>
+                                <div className={`p-2.5 rounded-xl ${bg} ${accent}`}>
+                                    <Icon className="w-5 h-5" />
+                                </div>
+                            </div>
+                        </button>
+                    );
+                })}
             </div>
 
             {/* Content */}

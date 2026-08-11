@@ -65,6 +65,16 @@ const Analytics: React.FC = () => {
 
     const totalMonthlyRevenue = analytics?.revenue?.reduce((acc: number, cur: any) => acc + cur.amount, 0) || 0;
 
+    // Bar colour per metric — a high cancellation rate is bad, a high completion rate is good.
+    const performanceColors: Record<string, string> = {
+        profileCompletion: 'bg-secondary-500',
+        driverVerification: 'bg-emerald-500',
+        cancellationRate: 'bg-rose-500',
+        rideCompletion: 'bg-secondary-500',
+    };
+
+    const performance = analytics?.performance || [];
+
     return (
         <div className="space-y-8 animate-fade-in">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -217,22 +227,25 @@ const Analytics: React.FC = () => {
                 <div className="bg-white dark:bg-slate-900 p-8 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800">
                     <h3 className="text-xl font-bold dark:text-white mb-8">Performance Summary</h3>
                     <div className="space-y-6">
-                        {[
-                            { label: 'Platform Usage', value: 'High', percent: 85, color: 'bg-secondary-500' },
-                            { label: 'Driver Activity', value: 'Moderate', percent: 62, color: 'bg-emerald-500' },
-                            { label: 'Cancellation Rate', value: '4.2%', percent: 12, color: 'bg-rose-500' },
-                            { label: 'App Uptime', value: '99.9%', percent: 99, color: 'bg-secondary-500' },
-                        ].map((source, idx) => (
-                            <div key={idx}>
+                        {performance.length > 0 ? performance.map((source: any) => (
+                            <div key={source.key}>
                                 <div className="flex justify-between items-center mb-2">
                                     <span className="text-sm font-bold text-slate-600 dark:text-slate-400">{source.label}</span>
                                     <span className="text-sm font-extrabold dark:text-white">{source.value}</span>
                                 </div>
                                 <div className="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                                    <div className={`h-full ${source.color} transition-all duration-1000`} style={{ width: `${source.percent}%` }} />
+                                    <div
+                                        className={`h-full ${performanceColors[source.key] || 'bg-primary-500'} transition-all duration-1000`}
+                                        style={{ width: `${source.percent}%` }}
+                                    />
                                 </div>
+                                {source.detail && (
+                                    <p className="text-[11px] text-slate-400 mt-1.5 font-medium">{source.detail}</p>
+                                )}
                             </div>
-                        ))}
+                        )) : (
+                            <p className="text-sm text-slate-400 italic">No performance data available yet.</p>
+                        )}
                     </div>
 
                     <div className="mt-12 p-6 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">

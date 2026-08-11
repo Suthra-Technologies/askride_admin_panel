@@ -11,9 +11,7 @@ import Settings from './pages/settings/Settings';
 import Login from './pages/auth/Login';
 import VerifyOTP from './pages/auth/VerifyOTP';
 import Rides from './pages/rides/Rides';
-
-// Placeholder components for other pages
-const Notifications = () => <div className="p-8"><h1 className="text-3xl font-bold dark:text-white">System Notifications</h1><p className="dark:text-slate-400 mt-2">Manage push notifications and email broadcasts.</p></div>;
+import Notifications from './pages/notifications/Notifications';
 
 function App() {
   return (

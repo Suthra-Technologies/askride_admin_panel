@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { adminApi } from '../../services/api';
 import { useDialog } from '../../context/DialogContext';
+import DocumentPreviewModal from '../../components/common/DocumentPreviewModal';
 
 const Verification: React.FC = () => {
     const [verifications, setVerifications] = useState<any[]>([]);
@@ -18,6 +19,7 @@ const Verification: React.FC = () => {
     const [filter, setFilter] = useState<'all' | 'pending' | 'verified'>('all');
     const [currentPage, setCurrentPage] = useState(1);
     const [totalVerifications, setTotalVerifications] = useState(0);
+    const [preview, setPreview] = useState<{ url: string; title: string; subtitle?: string } | null>(null);
     const itemsPerPage = 10;
     const { confirm, showAlert } = useDialog();
 
@@ -104,12 +106,12 @@ const Verification: React.FC = () => {
         );
     }
 
-    const handleViewDocument = (url?: string) => {
+    const handleViewDocument = (url: string | undefined, title: string, subtitle?: string) => {
         if (!url) {
             showAlert("Not Available", "This document image is not available for viewing.", 'alert');
             return;
         }
-        window.open(url, '_blank');
+        setPreview({ url, title, subtitle });
     };
 
     return (
@@ -182,14 +184,22 @@ const Verification: React.FC = () => {
                                     <div className="grid grid-cols-2 gap-2">
                                         <button
                                             disabled={!driver.driverLicenseDocument?.front}
-                                            onClick={() => handleViewDocument(driver.driverLicenseDocument?.front)}
+                                            onClick={() => handleViewDocument(
+                                                driver.driverLicenseDocument?.front,
+                                                'Driver License — Front',
+                                                `${driver.firstName} ${driver.lastName} • No: ${driver.driverLicenseNumber || 'Not Provided'}`
+                                            )}
                                             className="py-2 bg-white dark:bg-slate-800 hover:bg-slate-100 disabled:opacity-50 text-xs font-bold rounded-lg border border-slate-200 transition-all"
                                         >
                                             Front View
                                         </button>
                                         <button
                                             disabled={!driver.driverLicenseDocument?.back}
-                                            onClick={() => handleViewDocument(driver.driverLicenseDocument?.back)}
+                                            onClick={() => handleViewDocument(
+                                                driver.driverLicenseDocument?.back,
+                                                'Driver License — Back',
+                                                `${driver.firstName} ${driver.lastName} • No: ${driver.driverLicenseNumber || 'Not Provided'}`
+                                            )}
                                             className="py-2 bg-white dark:bg-slate-800 hover:bg-slate-100 disabled:opacity-50 text-xs font-bold rounded-lg border border-slate-200 transition-all"
                                         >
                                             Back View
@@ -237,14 +247,22 @@ const Verification: React.FC = () => {
                                     <div className="grid grid-cols-2 gap-2">
                                         <button
                                             disabled={!driver.idProofDocument?.front}
-                                            onClick={() => handleViewDocument(driver.idProofDocument?.front)}
+                                            onClick={() => handleViewDocument(
+                                                driver.idProofDocument?.front,
+                                                `${driver.idProofType?.replace(/_/g, ' ') || 'Identity Proof'} — Front`,
+                                                `${driver.firstName} ${driver.lastName} • No: ${driver.idProofNumber || 'Not Provided'}`
+                                            )}
                                             className="py-2 bg-white dark:bg-slate-800 hover:bg-slate-100 disabled:opacity-50 text-xs font-bold rounded-lg border border-slate-200 transition-all"
                                         >
                                             Front View
                                         </button>
                                         <button
                                             disabled={!driver.idProofDocument?.back}
-                                            onClick={() => handleViewDocument(driver.idProofDocument?.back)}
+                                            onClick={() => handleViewDocument(
+                                                driver.idProofDocument?.back,
+                                                `${driver.idProofType?.replace(/_/g, ' ') || 'Identity Proof'} — Back`,
+                                                `${driver.firstName} ${driver.lastName} • No: ${driver.idProofNumber || 'Not Provided'}`
+                                            )}
                                             className="py-2 bg-white dark:bg-slate-800 hover:bg-slate-100 disabled:opacity-50 text-xs font-bold rounded-lg border border-slate-200 transition-all"
                                         >
                                             Back View
@@ -293,9 +311,27 @@ const Verification: React.FC = () => {
                                         <div className="flex justify-between items-center text-xs font-bold dark:text-white">
                                             <span>RC Document:</span>
                                             <div className="flex gap-1">
-                                                <button onClick={() => handleViewDocument(vehicle.rcDocument?.front)} className="text-primary-600 hover:underline">Front</button>
+                                                <button
+                                                    onClick={() => handleViewDocument(
+                                                        vehicle.rcDocument?.front,
+                                                        'RC Document — Front',
+                                                        `${vehicle.model} • ${vehicle.vehicleNumber}`
+                                                    )}
+                                                    className="text-primary-600 hover:underline"
+                                                >
+                                                    Front
+                                                </button>
                                                 <span>•</span>
-                                                <button onClick={() => handleViewDocument(vehicle.rcDocument?.back)} className="text-primary-600 hover:underline">Back</button>
+                                                <button
+                                                    onClick={() => handleViewDocument(
+                                                        vehicle.rcDocument?.back,
+                                                        'RC Document — Back',
+                                                        `${vehicle.model} • ${vehicle.vehicleNumber}`
+                                                    )}
+                                                    className="text-primary-600 hover:underline"
+                                                >
+                                                    Back
+                                                </button>
                                             </div>
                                         </div>
                                         <div className="flex justify-between items-center text-xs font-bold dark:text-white">
@@ -456,6 +492,14 @@ const Verification: React.FC = () => {
                 <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
                 <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/2" />
             </div>
+
+            <DocumentPreviewModal
+                isOpen={!!preview}
+                onClose={() => setPreview(null)}
+                url={preview?.url}
+                title={preview?.title || ''}
+                subtitle={preview?.subtitle}
+            />
         </div>
     );
 };

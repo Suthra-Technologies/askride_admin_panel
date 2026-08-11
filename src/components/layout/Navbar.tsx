@@ -1,19 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
-    Search,
     Bell,
     Moon,
     Sun,
     User as UserIcon,
     Search as SearchIcon,
     ChevronDown,
-    LogOut
+    LogOut,
+    ShieldCheck,
+    XCircle,
+    CheckCheck,
+    Inbox
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { formatDistanceToNow } from 'date-fns';
 import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../context/AuthContext';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { useDialog } from '../../context/DialogContext';
+import { adminApi } from '../../services/api';
 
 function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
@@ -25,7 +31,99 @@ const Navbar: React.FC = () => {
     const { isDarkMode, toggleDarkMode } = useTheme();
     const { user, logout } = useAuth();
     const { confirm } = useDialog();
+    const navigate = useNavigate();
     const [showProfileMenu, setShowProfileMenu] = useState(false);
+    const [showNotifications, setShowNotifications] = useState(false);
+    const [notifications, setNotifications] = useState<any[]>([]);
+    const [unreadCount, setUnreadCount] = useState(0);
+    const [isLoadingNotifications, setIsLoadingNotifications] = useState(false);
+
+    // The badge polls on its own so a new event shows up without a page refresh.
+    // Cheap query (a countDocuments), unlike fetching the whole list.
+    const fetchUnreadCount = useCallback(async () => {
+        try {
+            const res = await adminApi.getUnreadNotificationCount();
+            setUnreadCount(res.data.unreadCount || 0);
+        } catch (error) {
+            // A failing badge must never break the navbar - leave the last known count.
+            console.error('Failed to fetch unread notification count', error);
+        }
+    }, []);
+
+    useEffect(() => {
+        fetchUnreadCount();
+        const intervalId = setInterval(fetchUnreadCount, 30000);
+        return () => clearInterval(intervalId);
+    }, [fetchUnreadCount]);
+
+    // The full list is only fetched when the panel is actually opened.
+    const fetchNotifications = async () => {
+        setIsLoadingNotifications(true);
+        try {
+            const res = await adminApi.getNotifications({ page: 1, limit: 10 });
+            setNotifications(res.data.data || []);
+            setUnreadCount(res.data.unreadCount || 0);
+        } catch (error) {
+            console.error('Failed to fetch notifications', error);
+        } finally {
+            setIsLoadingNotifications(false);
+        }
+    };
+
+    const handleToggleNotifications = () => {
+        const opening = !showNotifications;
+        setShowNotifications(opening);
+        if (opening) fetchNotifications();
+    };
+
+    const handleNotificationClick = async (notification: any) => {
+        setShowNotifications(false);
+
+        if (!notification.isRead) {
+            // Update locally first so the panel reacts immediately, then persist.
+            setNotifications(prev =>
+                prev.map(n => (n._id === notification._id ? { ...n, isRead: true } : n))
+            );
+            setUnreadCount(prev => Math.max(prev - 1, 0));
+            try {
+                await adminApi.markNotificationRead(notification._id);
+            } catch (error) {
+                console.error('Failed to mark notification as read', error);
+                fetchUnreadCount();
+            }
+        }
+
+        if (notification.link) navigate(notification.link);
+    };
+
+    const handleMarkAllRead = async () => {
+        setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+        setUnreadCount(0);
+        try {
+            await adminApi.markAllNotificationsRead();
+        } catch (error) {
+            console.error('Failed to mark all notifications as read', error);
+            fetchUnreadCount();
+        }
+    };
+
+    const getNotificationIcon = (type: string) => {
+        switch (type) {
+            case 'ADMIN_VERIFICATION_SUBMITTED':
+                return { Icon: ShieldCheck, className: 'bg-amber-50 dark:bg-amber-900/20 text-amber-600' };
+            case 'ADMIN_RIDE_CANCELLED':
+                return { Icon: XCircle, className: 'bg-rose-50 dark:bg-rose-900/20 text-rose-600' };
+            default:
+                return { Icon: Bell, className: 'bg-slate-100 dark:bg-slate-800 text-slate-500' };
+        }
+    };
+
+    const formatTimestamp = (value?: string) => {
+        if (!value) return '';
+        const date = new Date(value);
+        if (isNaN(date.getTime())) return '';
+        return formatDistanceToNow(date, { addSuffix: true });
+    };
 
     const handleLogoutClick = () => {
         setShowProfileMenu(false);
@@ -64,10 +162,96 @@ const Navbar: React.FC = () => {
                     </button>
 
                     {/* Notifications */}
-                    <button className="relative p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-colors">
-                        <Bell className="w-5 h-5" />
-                        <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-slate-900" />
-                    </button>
+                    <div className="relative">
+                        <button
+                            onClick={handleToggleNotifications}
+                            aria-label={unreadCount > 0 ? `Notifications, ${unreadCount} unread` : 'Notifications'}
+                            className="relative p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-colors"
+                        >
+                            <Bell className="w-5 h-5" />
+                            {unreadCount > 0 && (
+                                <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center bg-red-500 text-white text-[10px] font-bold rounded-full border-2 border-white dark:border-slate-900">
+                                    {unreadCount > 9 ? '9+' : unreadCount}
+                                </span>
+                            )}
+                        </button>
+
+                        {showNotifications && (
+                            <>
+                                <div className="fixed inset-0 z-40" onClick={() => setShowNotifications(false)} />
+                                <div className="absolute right-0 mt-2 w-[380px] max-w-[calc(100vw-2rem)] bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 z-50 animate-fade-in overflow-hidden">
+                                    <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 dark:border-slate-700">
+                                        <h4 className="text-sm font-bold text-slate-900 dark:text-white">
+                                            Notifications
+                                            {unreadCount > 0 && (
+                                                <span className="ml-2 text-xs font-medium text-slate-400">{unreadCount} unread</span>
+                                            )}
+                                        </h4>
+                                        {unreadCount > 0 && (
+                                            <button
+                                                onClick={handleMarkAllRead}
+                                                className="flex items-center gap-1.5 text-xs font-bold text-primary-600 hover:underline"
+                                            >
+                                                <CheckCheck className="w-3.5 h-3.5" /> Mark all read
+                                            </button>
+                                        )}
+                                    </div>
+
+                                    <div className="max-h-[400px] overflow-y-auto">
+                                        {isLoadingNotifications ? (
+                                            <div className="py-10 flex justify-center">
+                                                <div className="w-6 h-6 border-2 border-primary-600/30 border-t-primary-600 rounded-full animate-spin" />
+                                            </div>
+                                        ) : notifications.length > 0 ? (
+                                            notifications.map((notification) => {
+                                                const { Icon, className } = getNotificationIcon(notification.type);
+                                                return (
+                                                    <button
+                                                        key={notification._id}
+                                                        onClick={() => handleNotificationClick(notification)}
+                                                        className={cn(
+                                                            "w-full text-left flex gap-3 px-4 py-3 border-b border-slate-50 dark:border-slate-700/50 last:border-0 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors",
+                                                            !notification.isRead && "bg-primary-50/40 dark:bg-primary-900/10"
+                                                        )}
+                                                    >
+                                                        <div className={cn("shrink-0 w-9 h-9 rounded-xl flex items-center justify-center", className)}>
+                                                            <Icon className="w-4.5 h-4.5" />
+                                                        </div>
+                                                        <div className="min-w-0 flex-1">
+                                                            <div className="flex items-start gap-2">
+                                                                <p className="text-sm font-bold text-slate-900 dark:text-white leading-snug">
+                                                                    {notification.title}
+                                                                </p>
+                                                                {!notification.isRead && (
+                                                                    <span className="mt-1.5 shrink-0 w-2 h-2 rounded-full bg-primary-500" />
+                                                                )}
+                                                            </div>
+                                                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">
+                                                                {notification.message}
+                                                            </p>
+                                                            <p className="text-[10px] text-slate-400 mt-1 font-medium">
+                                                                {formatTimestamp(notification.createdAt)}
+                                                            </p>
+                                                        </div>
+                                                    </button>
+                                                );
+                                            })
+                                        ) : (
+                                            <div className="py-12 text-center px-6">
+                                                <div className="w-12 h-12 bg-slate-50 dark:bg-slate-700/50 rounded-full flex items-center justify-center mx-auto mb-3">
+                                                    <Inbox className="w-6 h-6 text-slate-300 dark:text-slate-500" />
+                                                </div>
+                                                <p className="text-sm font-bold text-slate-900 dark:text-white mb-1">You're all caught up</p>
+                                                <p className="text-xs text-slate-500 dark:text-slate-400">
+                                                    New verifications and ride cancellations will appear here.
+                                                </p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </>
+                        )}
+                    </div>
 
                     {/* Profile Dropdown */}
                     <div className="relative">

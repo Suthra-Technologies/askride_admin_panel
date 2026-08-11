@@ -28,6 +28,7 @@ const Users: React.FC = () => {
     const [users, setUsers] = useState<any[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
+    const [roleFilter, setRoleFilter] = useState('all');
     const [isLoading, setIsLoading] = useState(true);
     const [showExportDropdown, setShowExportDropdown] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
@@ -41,6 +42,7 @@ const Users: React.FC = () => {
             const res = await adminApi.getUsers({
                 search: searchTerm,
                 status: statusFilter !== 'all' ? statusFilter : undefined,
+                role: roleFilter !== 'all' ? roleFilter : undefined,
                 page: currentPage,
                 limit: itemsPerPage
             });
@@ -58,9 +60,27 @@ const Users: React.FC = () => {
             fetchUsers();
         }, 500);
         return () => clearTimeout(timeoutId);
-    }, [searchTerm, statusFilter, currentPage]);
+    }, [searchTerm, statusFilter, roleFilter, currentPage]);
+
+    // Filters change the result set, so go back to the first page
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm, statusFilter, roleFilter]);
 
     const totalPages = Math.ceil(totalUsers / itemsPerPage);
+
+    const getRoleBadgeClass = (role?: string) => {
+        switch (String(role || '').toUpperCase()) {
+            case 'DRIVER':
+                return 'border-primary-200 text-primary-600 bg-primary-50 dark:bg-primary-900/10 dark:border-primary-800';
+            case 'PASSENGER':
+                return 'border-amber-200 text-amber-600 bg-amber-50 dark:bg-amber-900/10 dark:border-amber-800';
+            case 'ADMIN':
+                return 'border-violet-200 text-violet-600 bg-violet-50 dark:bg-violet-900/10 dark:border-violet-800';
+            default:
+                return 'border-slate-200 text-slate-600 bg-slate-50 dark:bg-slate-800 dark:border-slate-700';
+        }
+    };
 
     // ... handleBlockUser, handleExportExcel, handleExportPDF stay same ...
     // (I'll keep them to avoid breaking the file, but focus on pagination UI)
@@ -157,6 +177,20 @@ const Users: React.FC = () => {
                         </select>
                     </div>
 
+                    <div className="relative flex-1 md:flex-none">
+                        <Shield className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                        <select
+                            value={roleFilter}
+                            onChange={(e) => setRoleFilter(e.target.value)}
+                            className="pl-10 pr-8 py-2.5 bg-slate-50 dark:bg-slate-800 border-none rounded-xl text-sm font-medium focus:ring-2 focus:ring-primary-500 appearance-none w-full"
+                        >
+                            <option value="all">All Roles</option>
+                            <option value="DRIVER">Driver</option>
+                            <option value="PASSENGER">Passenger</option>
+                            <option value="ADMIN">Admin</option>
+                        </select>
+                    </div>
+
                     <div className="relative">
                         <button
                             onClick={() => setShowExportDropdown(!showExportDropdown)}
@@ -231,8 +265,7 @@ const Users: React.FC = () => {
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 capitalize text-sm font-medium dark:text-slate-300">
-                                        <span className={`px-2 py-0.5 rounded-lg border ${user.role === 'DRIVER' ? 'border-primary-200 text-primary-600 bg-primary-50 dark:bg-primary-900/10 dark:border-primary-800' : 'border-slate-200 text-slate-600 bg-slate-50 dark:bg-slate-800 dark:border-slate-700'
-                                            }`}>
+                                        <span className={`px-2 py-0.5 rounded-lg border ${getRoleBadgeClass(user.role)}`}>
                                             {user.role}
                                         </span>
                                     </td>

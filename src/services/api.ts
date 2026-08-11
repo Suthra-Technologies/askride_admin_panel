@@ -23,12 +23,29 @@ export const adminApi = {
   getStats: () => api.get('/admin/dashboard/stats'),
   getUsers: (params?: any) => api.get('/admin/users', { params }),
   getRides: (params?: any) => api.get('/admin/rides', { params }),
-  getVerifications: () => api.get('/admin/verifications'),
+  getVerifications: (params?: any) => api.get('/admin/verifications', { params }),
   getAnalytics: () => api.get('/admin/analytics'),
   blockUser: (id: string, isBlocked: boolean) => api.patch(`/admin/users/${id}/block`, { isBlocked }),
   verifyIdProof: (id: string, approved: boolean) => api.patch(`/admin/verifications/${id}/id-proof`, { approved }),
   verifyLicense: (id: string, approved: boolean) => api.patch(`/admin/verifications/${id}/license`, { approved }),
   verifyVehicle: (id: string, approved: boolean) => api.patch(`/admin/vehicles/${id}/verify`, { approved }),
+  getNotifications: (params?: any) => api.get('/admin/notifications', { params }),
+  getUnreadNotificationCount: () => api.get('/admin/notifications/unread-count'),
+  markNotificationRead: (id: string) => api.patch(`/admin/notifications/${id}/read`),
+  markAllNotificationsRead: () => api.patch('/admin/notifications/read-all'),
+  getProfile: () => api.get('/admin/profile'),
+  updateProfile: (data: { firstName?: string; lastName?: string; email?: string; phone?: string }) =>
+    api.patch('/admin/profile', data),
+  getTeam: () => api.get('/admin/team'),
+  promoteToAdmin: (userId: string) => api.post('/admin/team/promote', { userId }),
+  demoteAdmin: (id: string) => api.patch(`/admin/team/${id}/demote`),
+  getPlatformStatus: () => api.get('/admin/platform-status'),
+  getSettings: () => api.get('/admin/settings'),
+  updateSettings: (data: Record<string, boolean>) => api.patch('/admin/settings', data),
+  getAudienceCounts: () => api.get('/admin/broadcasts/audience-counts'),
+  getBroadcasts: (params?: any) => api.get('/admin/broadcasts', { params }),
+  sendBroadcast: (data: { audience: string; userId?: string; title: string; message: string }) =>
+    api.post('/admin/broadcasts', data),
 };
 
 export default api;
